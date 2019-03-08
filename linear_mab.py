@@ -15,12 +15,12 @@ def get_data():
         data_csv.seek(0)
 
         table = np.zeros((num_rows, len(FEATURE_IDX)))
-        for idx, row in enumerate(data_reader):
+        for i, row in enumerate(data_reader):
             try:
                 row = [float(row[idx]) for idx in FEATURE_IDX]
             except:
                 continue
-            table[idx, :] = np.array(row)
+            table[i, :] = np.array(row)
             print(row)
 
         return table
@@ -29,7 +29,13 @@ def get_data():
 def regress(data):
     A = np.eye(d)
     b = np.zeros((d, 1))
-    for
+
+    m, _ = data.shape
+    for i in range(m):
+        theta = np.linalg.inv(A) * b
+
+        for a in range(K):
+            
 
 
 if __name__ == '__main__':
