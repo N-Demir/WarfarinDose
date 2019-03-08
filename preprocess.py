@@ -75,7 +75,38 @@ VKORC1 -4451 consensus: 62
 import csv
 
 DATA_PATH = 'data/'
+
+AGE_IDX = 4
 DOSAGE_IDX = 34
+
+def discretize_age(string):
+	if string == '10 - 19':
+		return 1
+	elif string == '20 - 29':
+		return 2
+	elif string == '30 - 29':
+		return 3
+	elif string == '40 - 49':
+		return 4
+	elif string == '50 - 59':
+		return 5
+	elif string == '60 - 69':
+		return 6
+	elif string == '70 - 79':
+		return 7
+	elif string == '80 - 89':
+		return 8
+
+def discetize_dosage(string):
+	dosage = float(string)
+
+	if dosage < 21:
+		return 0
+	elif 21 <= dosage and dosage <= 49:
+		return 1
+	elif 49 < dosage:
+		return 2
+
 
 with open(DATA_PATH + 'warfarin.csv') as csvfile:
 	with open(DATA_PATH + 'processed.csv', 'w') as out_file:
@@ -89,8 +120,11 @@ with open(DATA_PATH + 'warfarin.csv') as csvfile:
 
 
 			if row[DOSAGE_IDX] != "NA" and row[DOSAGE_IDX] != "":
-				i += 1
+				row[AGE_IDX] = discretize_age(row[AGE_IDX])
+				row[DOSAGE_IDX] = discetize_dosage(row[DOSAGE_IDX])
 				writer.writerow(row)
+
+				i += 1
 
 		print("In total got {} rows".format(i))
 
