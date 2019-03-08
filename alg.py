@@ -42,7 +42,10 @@ def baseline_alg(age, height, weight, asian, black, mixed_race, enzyme, amiodaro
 def run_baseline(in_path, out_path):
 	with open(in_path,'r') as in_file:
 		with open(out_path, 'w') as out_file:
-			for line in in_file:
+			reader = csv.reader(csvfile, delimiter=',', quotechar='\"')
+			writer = csv.writer(out_file, delimiter=',',quotechar='\"')
+
+			for line in reader:
 				parts = line.split(",")
 
 				age = 
