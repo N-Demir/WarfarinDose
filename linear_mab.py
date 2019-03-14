@@ -5,8 +5,8 @@ import seaborn as sns
 
 DATA_PATH = 'data/processed.csv'
 
-FEATURE_IDX = [4, 5, 6, 13]
-NORMALIZATION_QUANTS = [9, 210, 115, 1]
+FEATURE_IDX = [1, 2, 3, 4, 5, 6, 13]
+NORMALIZATION_QUANTS = [2, 3, 2, 9, 210, 115, 1]
 TRUTH_IDX = 34
 ALPHA = .5
 K = 3
