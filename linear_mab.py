@@ -5,15 +5,15 @@ import seaborn as sns
 
 DATA_PATH = 'data/processed.csv'
 
-FEATURE_IDX = [5, 6, 13]
-NORMALIZATION_QUANTS = [210, 115, 1]
+FEATURE_IDX = [4, 5, 6, 13]
+NORMALIZATION_QUANTS = [9, 210, 115, 1]
 TRUTH_IDX = 34
 ALPHA = .5
 K = 3
 d = len(FEATURE_IDX)
 
 METRIC_ITERS = 100
-NUM_REGRESSES = 10
+NUM_REGRESSES = 2
 
 # Returns |table|, a matrix whose rows represent the feature vectors per each
 # patient according to |FEATURE_IDX|. Returns |truth_vals|, a vector whose
@@ -124,5 +124,6 @@ if __name__ == '__main__':
         all_regret.append(regret)
 
     print('The average regret is ' + str(np.mean(all_regret)) + '.')
+    print('The average accuracy is ' + str(1 - np.mean(np.array(all_percents_incorrect)[:, -1])) + '.')
     sns.tsplot(data = all_percents_incorrect, time = iterates)
     plt.show()
