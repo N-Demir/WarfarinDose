@@ -76,8 +76,37 @@ import csv
 
 DATA_PATH = 'data/'
 
+GENDER_IDX = 1
+RACE_IDX = 2
+ETHNICITY_IDX = 3
 AGE_IDX = 4
 DOSAGE_IDX = 34
+
+def discretize_gender(string):
+	if string == '' or string == 'NA':
+		return 0
+	elif string == 'male':
+		return 1
+	elif string == 'female':
+		return 2
+
+def discretize_race(string):
+	if string == '' or string == 'unknown':
+		return 0
+	elif string == 'black or african american':
+		return 1
+	elif string == 'asian':
+		return 2
+	elif string == 'white':
+		return 3
+
+def discretize_ethnicity(string):
+	if string == '' or string == 'unknown':
+		return 0
+	elif string == 'not hispanic or latino':
+		return 1
+	elif string == 'hispanic or latino':
+		return 2
 
 def discretize_age(string):
 	if string == '10 - 19':
@@ -124,6 +153,9 @@ with open(DATA_PATH + 'warfarin.csv') as csvfile:
 
 				row = [elem.lower() for elem in row]
 
+				row[GENDER_IDX] = discretize_gender(row[GENDER_IDX])
+				row[RACE_IDX] = discretize_race(row[RACE_IDX])
+				row[ETHNICITY_IDX] = discretize_ethnicity(row[ETHNICITY_IDX])
 				row[AGE_IDX] = discretize_age(row[AGE_IDX])
 				row[DOSAGE_IDX] = discetize_dosage(row[DOSAGE_IDX])
 				writer.writerow(row)

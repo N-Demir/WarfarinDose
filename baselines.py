@@ -57,7 +57,7 @@ def run_clinical_alg(in_path, out_path):
 
 			for row in reader:
 				if row[4] == 'na' or row[4] == "" or row[5] == 'na' or row[5] == "" or row[6] == 'na' or row[6] == "":
-					out_file.write("1" + "\n")
+					out_file.write("NA" + "\n")
 					continue
 
 				medications = row[12].split('; ')
@@ -89,6 +89,9 @@ def get_performance(processed_path, values_path):
 			count = 0.0
 			correct = 0.0
 			for row_idx, row in enumerate(reader):
+				if values[row_idx].strip("\n") == "NA":
+					continue
+
 				count += 1.0
 
 				if row[DOSAGE_IDX] == values[row_idx].strip("\n"):
