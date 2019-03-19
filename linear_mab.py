@@ -21,8 +21,6 @@ NUM_REGRESSES = 2
 def get_data():
     with open(DATA_PATH, 'r') as data_csv:
         data_reader = csv.reader(data_csv, delimiter = ',', quotechar = '\"')
-        num_rows = sum(1 for row in data_reader)
-        data_csv.seek(0)
 
         table = []
         truth_vals = []
