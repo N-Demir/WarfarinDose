@@ -56,8 +56,8 @@ def run_clinical_alg(in_path, out_path):
 			reader = csv.reader(in_file, delimiter=',', quotechar='\"')
 
 			for row in reader:
-				if row[4] == 'na' or row[4] == "" or row[5] == 'na' or row[5] == "" or row[6] == 'na' or row[6] == "":
-					out_file.write("NA" + "\n")
+				if row[2] == 'na' or row[2] == '' or row[4] == 'na' or row[4] == "" or row[5] == 'na' or row[5] == "" or row[6] == 'na' or row[6] == "":
+					out_file.write("na" + "\n")
 					continue
 
 				medications = row[12].split('; ')
@@ -65,9 +65,9 @@ def run_clinical_alg(in_path, out_path):
 				age = float(row[4])
 				height = float(row[5])
 				weight = float(row[6])
-				asian = 1 if row[2] == 'Asian' else 0
-				black = 1 if row[2] == 'Black or African American' else 0
-				mixed_race = 1 if row[2] == 'Unknown' else 0
+				asian = 1 if row[2] == 'asian' else 0
+				black = 1 if row[2] == 'black or african american' else 0
+				mixed_race = 1 if row[2] == 'unknown' else 0
 				enzyme = 1 if 'carbamazepine' in medications or 'phenytoin' in medications or 'rifampin' in medications or 'rifampicin' in medications else 0
 				amiodarone = 1 if 'amiodarone' in medications else 0
 
@@ -89,7 +89,7 @@ def get_performance(processed_path, values_path):
 			count = 0.0
 			correct = 0.0
 			for row_idx, row in enumerate(reader):
-				if values[row_idx].strip("\n") == "NA":
+				if values[row_idx].strip("\n") == "na":
 					continue
 
 				count += 1.0
@@ -100,11 +100,11 @@ def get_performance(processed_path, values_path):
 			return correct / count
 
 def main():
-	run_clinical_alg('data/processed.csv', 'output/clinical_alg.csv')
-	run_fixed_dose('data/processed.csv', 'output/fixed_dose.csv')
+	run_clinical_alg('data/baselines_processed.csv', 'output/clinical_alg.csv')
+	run_fixed_dose('data/baselines_processed.csv', 'output/fixed_dose.csv')
 
-	clinical_alg_performance = get_performance('data/processed.csv', 'output/clinical_alg.csv')
-	fixed_dose_performance = get_performance('data/processed.csv', 'output/fixed_dose.csv')
+	clinical_alg_performance = get_performance('data/baselines_processed.csv', 'output/clinical_alg.csv')
+	fixed_dose_performance = get_performance('data/baselines_processed.csv', 'output/fixed_dose.csv')
 
 	print('Clinical performance: {} and Fixed dose performance: {}'.format(clinical_alg_performance, fixed_dose_performance))
 
