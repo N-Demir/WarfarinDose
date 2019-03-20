@@ -1,6 +1,3 @@
-# TODO: Start index from 1
-
-
 """
 Some notes on the algorithm:
 
@@ -34,7 +31,7 @@ NORMALIZATION_QUANTS = [2, 3, 2, 9, 210, 115, 1]
 TRUTH_IDX = 34
 d = len(FEATURE_IDX)
 NUM_ARMS = 3
-NUM_REGRESSES = 2
+NUM_REGRESSES = 10
 
 """
 Alg hyperparameters
@@ -170,20 +167,6 @@ def lasso_alg(data, truth_vals):
 	accuracy = num_correct_preds / m
 	regret = m - num_correct_preds
 	return accuracy, regret
-
-
-# Returns the percentage of correctly classified patients using linear model
-# weights and biases |A| and |b|, respectively, on |data|. Correctness is
-# determined according to |truth_vals|.
-def test(A, b, data, truth_vals):
-	num_correct_preds = 0
-	m, _ = data.shape
-	for i in range(m):
-		pred_opt_a = predict_optimal_action_index(A, b, data[i])
-		num_correct_preds += int(pred_opt_a == truth_vals[i])
-
-	percent_correct = num_correct_preds / m
-	return percent_correct
 
 
 # Returns shuffled data |data| and |truth_vals|.
