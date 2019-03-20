@@ -1,3 +1,5 @@
+# TODO: Start index from 1
+
 
 """
 Some notes on the algorithm:
@@ -30,21 +32,22 @@ DATA_PATH = 'data/processed.csv'
 FEATURE_IDX = [1, 2, 3, 4, 5, 6, 13]
 NORMALIZATION_QUANTS = [2, 3, 2, 9, 210, 115, 1]
 TRUTH_IDX = 34
+d = len(FEATURE_IDX)
 NUM_ARMS = 3
 NUM_REGRESSES = 2
 
 """
 Alg hyperparameters
 """
-Q = 12
-H = 2
+Q = 1
+H = 5
 # Forced sample estimate hyperparam
 LAMBDA1 = 0.1
 # All sample estimate hyperparam
 LAMBDA2 = 0.1
 
 # For constructing T_i, which in the alg is an infinite set
-MAX_N = 50_000
+MAX_N = 1000
 
 """
 Returns |table|, a matrix whose rows represent the feature vectors per each
@@ -76,7 +79,7 @@ Fits a lasso estimator to the old data with hyperparam lambd
 Returns the estimate for new data point
 """
 def get_lasso_estimate(prev_X, prev_Y, cur_X, lambd):
-	clf = linear_model.Lasso(alpha=lambd)
+	clf = linear_model.Lasso(alpha=lambd / 2, fit_intercept=False, max_iter=3000)
 	clf.fit(prev_X, prev_Y)
 	return clf.predict(cur_X)
 
@@ -88,6 +91,7 @@ def get_T_i(i):
 	for n in range(MAX_N):
 		for j in range(Q * (i - 1) + 1, Q * i + 1):
 			T_i.append((2**n - 1) * NUM_ARMS * Q + j)
+	return T_i
 
 
 """
@@ -108,21 +112,22 @@ def lasso_alg(data, truth_vals):
 	lambda2_t = LAMBDA2
 
 	# TODO: Determine T_i, i.e at what t do we force sample an arm
-	T = [get_T_i(i) for i in range(NUM_ARMS)]
+	T = [get_T_i(i) for i in range(1, NUM_ARMS + 1)]
 
-	for t in range(m):
-		X_t = data[t]
-		Y_t = truth_vals[t]
+	for t in range(1, m + 1):
+		X_t = data[t - 1]
+		Y_t = truth_vals[t - 1]
 		
 		# Check to see first if this t should be a forced sample
 		arm_choice = None
+
 		for i, T_i in enumerate(T):
 			if t in T_i:
 				arm_choice = i
 		if arm_choice != None:
 			# If the current time t is in forced_sample_times then play it
 			forced_sample_X[arm_choice].append(X_t)
-			forced_sample_Y[arm_choice].append(Y_t)
+			forced_sample_Y[arm_choice].append(-int(arm_choice != truth_vals[t - 1]))
 		else:
 			# Otherwise
 			# 1) Use forced_sample_estimates for pre-processing step:
@@ -132,27 +137,29 @@ def lasso_alg(data, truth_vals):
 			# 
 			# Then select the subset of arms whose rewards are within h/2 of max
 
-			forced_estimated_rewards = [ get_lasso_estimate(forced_sample_X[i], forced_sample_Y[i], X_t, LAMBDA1) for i in range(NUM_ARMS) ]
+			forced_estimated_rewards = np.array([ get_lasso_estimate(forced_sample_X[i], forced_sample_Y[i], [X_t], LAMBDA1) for i in range(NUM_ARMS) ])
 
-			assert(forced_estimated_rewards.shape == [1, NUM_ARMS])
+			# assert(np.array(forced_estimated_rewards).shape == [1, NUM_ARMS])
+			# print(np.array(forced_estimated_rewards).shape)
+			forced_estimated_rewards = np.reshape(forced_estimated_rewards, [-1])
 
 			highest_forced_estimated_reward = forced_estimated_rewards.max()
 
-			arms_subset_indices = np.argwhere(forced_estimated_rewards >= highest_forced_estimated_reward - h / 2)
+			arms_subset_indices = np.argwhere(forced_estimated_rewards >= highest_forced_estimated_reward - H / 2)
 
 			# 2) Use all_sample estimates to choose the arm with the highest estimated
 			# reward within the arms_subset (K^hat)
 
-			arm_choice = np.argmax([get_lasso_estimate(all_sample_X[i], all_sample_Y[i], X_t, lambda2_t) for i in range(NUM_ARMS)][arms_subset_indices])
+			arm_choice = np.argmax(np.array([get_lasso_estimate(all_sample_X[i], all_sample_Y[i], [X_t], lambda2_t)[0] for i in range(NUM_ARMS)])[arms_subset_indices])
 
 		# Final step
 		lambda2_t = LAMBDA2 * np.sqrt((np.log(t) + np.log(n)) / t)
 
 		all_sample_X[arm_choice].append(X_t)
-		all_sample_Y[arm_choice].append(Y_t)
+		all_sample_Y[arm_choice].append(-int(arm_choice != truth_vals[t - 1]))
 
 		# Update our correct metrics
-		is_correct_pred = int(arm_choice == truth_vals[t])
+		is_correct_pred = int(arm_choice == truth_vals[t - 1])
 		num_correct_preds += is_correct_pred
 
 		# # Periodically capture incorrect percentage metrics.
@@ -160,9 +167,9 @@ def lasso_alg(data, truth_vals):
 		#     percent_correct = test(A, b, data, truth_vals)
 		#     percent_incorrect_metrics.append((i + 1, 1 - percent_correct))
 
-
+	accuracy = num_correct_preds / m
 	regret = m - num_correct_preds
-	return regret
+	return accuracy, regret
 
 
 # Returns the percentage of correctly classified patients using linear model
@@ -190,16 +197,15 @@ def shuffle_data(data, truth_vals):
 if __name__ == '__main__':
 	orig_data, orig_truth_vals = get_data()
 
-	
+	accuracies = []
 	all_regret = []
 	for i in range(NUM_REGRESSES):
 		print('Regression ' + str(i + 1) + ' out of ' + str(NUM_REGRESSES) + ' in progress...')
 		data, truth_vals = shuffle_data(orig_data, orig_truth_vals)
-		A, b, regret = lasso_alg(data, truth_vals)
+		print('Running lasso alg')
+		accuracy, regret = lasso_alg(data, truth_vals)
 
+		accuracies.append(accuracy)
 		all_regret.append(regret)
 
-	print('The average regret is ' + str(np.mean(all_regret)) + '.')
-
-
-
+	print('The average regret is ' + str(np.mean(all_regret)) + ' and average accuracy is ' + str(np.mean(accuracies)) + '.')
